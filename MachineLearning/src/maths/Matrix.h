@@ -3,35 +3,36 @@
 namespace maths {
 class Matrix {
 public:
-	double* m_Elements;
+	double* mElements;
 private:
-	unsigned int m_Rows;
-	unsigned int m_Columns;
+	unsigned int mRows;
+	unsigned int mColumns;
 public:
 	Matrix(int rows, int columns);
 	Matrix(const Matrix& copy);
+	Matrix(Matrix&& other) noexcept;
 	~Matrix();
 
-	inline int getRows() const { return m_Rows; }
-	inline int getColumns() const { return m_Columns; }
-	inline int getSize() const { return m_Rows * m_Columns; }
+	inline int GetRows() const { return mRows; }
+	inline int GetColumns() const { return mColumns; }
+	inline int GetSize() const { return mRows * mColumns; }
 
 	//Operations
-	void add(const Matrix* other);
-	void subtract(const Matrix* other);
-	void multiply (const Matrix* other);
-	void divide(const Matrix* other);
-	void dot(const Matrix* other);
+	void Add(const Matrix& other);
+	void Subtract(const Matrix& other);
+	void Multiply (const Matrix& other);
+	void Divide(const Matrix& other);
+	void Dot(const Matrix& other);
 
-	static Matrix* add(const Matrix* a, const Matrix* b);
-	static Matrix* subtract(const Matrix* a, const Matrix* b);
-	static Matrix* multiply(const Matrix* a, const Matrix* b);
-	static Matrix* divide(const Matrix* a, const Matrix* b);
-	static Matrix* dot(const Matrix* a, const Matrix* b);
+	static Matrix Add(const Matrix& a, const Matrix& b);
+	static Matrix Subtract(const Matrix& a, const Matrix& b);
+	static Matrix Multiply(const Matrix& a, const Matrix& b);
+	static Matrix Divide(const Matrix& a, const Matrix& b);
+	static Matrix Dot(const Matrix& a, const Matrix& b);
 
-	void transpose();
+	void Transpose();
 
-	static Matrix* transpose(const Matrix* matrix);
+	static Matrix Transpose(const Matrix& matrix);
 
 	//Operator overloads
 	friend Matrix operator+(const Matrix& a, const Matrix& b);

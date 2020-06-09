@@ -3,204 +3,212 @@
 
 namespace maths {
 Matrix::Matrix(int rows, int columns):
-	m_Rows(rows), m_Columns(columns)
+	mRows(rows), mColumns(columns)
 {
-	this->m_Elements = new double[getSize()];
+	this->mElements = new double[GetSize()];
 }
 
 Matrix::Matrix(const Matrix& copy):
-	m_Rows(copy.getRows()), m_Columns(copy.getColumns())
+	mRows(copy.GetRows()), mColumns(copy.GetColumns())
 {
-	unsigned int size = copy.getSize();
-	this->m_Elements = new double[size];
+	unsigned int size = copy.GetSize();
+	this->mElements = new double[size];
 
 	for (unsigned int i = 0; i < size; i++) {
-		this->m_Elements[i] = copy.m_Elements[i];
+		this->mElements[i] = copy.mElements[i];
 	}
+}
+
+Matrix::Matrix(Matrix&& other) noexcept
+{
+	this->mRows = other.GetRows();
+	this->mColumns = other.GetColumns();
+	this->mElements = other.mElements;
+
+	other.mElements = nullptr;
+	other.mRows = 0;
+	other.mColumns = 0;
 }
 
 Matrix::~Matrix()
 {
-	delete[] this->m_Elements;
+	delete[] this->mElements;
 }
 
-void Matrix::add(const Matrix* other)
+void Matrix::Add(const Matrix& other)
 {
-	unsigned int size = getSize();
+	if(this->mRows != other.mRows || this->mColumns != other.mColumns)
+		throw new std::invalid_argument("Matrix a's rows and columns do not match matrix b's rows and columns.");
+
+	unsigned int size = GetSize();
 	for (int i = 0; i < size; i++) {
-		this->m_Elements[i] += other->m_Elements[i];
+		this->mElements[i] += other.mElements[i];
 	}
 }
 
-void Matrix::subtract(const Matrix* other)
+void Matrix::Subtract(const Matrix& other)
 {
-	unsigned int size = getSize();
+	if (this->mRows != other.mRows || this->mColumns != other.mColumns)
+		throw new std::invalid_argument("Matrix a's rows and columns do not match matrix b's rows and columns.");
+
+	unsigned int size = GetSize();
 	for (int i = 0; i < size; i++) {
-		this->m_Elements[i] -= other->m_Elements[i];
+		this->mElements[i] -= other.mElements[i];
 	}
 }
 
-void Matrix::multiply(const Matrix* other)
+void Matrix::Multiply(const Matrix& other)
 {
-	unsigned int size = getSize();
+	if (this->mRows != other.mRows || this->mColumns != other.mColumns)
+		throw new std::invalid_argument("Matrix a's rows and columns do not match matrix b's rows and columns.");
+
+	unsigned int size = GetSize();
 	for (int i = 0; i < size; i++) {
-		this->m_Elements[i] *= other->m_Elements[i];
+		this->mElements[i] *= other.mElements[i];
 	}
 }
 
-void Matrix::divide(const Matrix* other)
+void Matrix::Divide(const Matrix& other)
 {
-	unsigned int size = getSize();
+	if (this->mRows != other.mRows || this->mColumns != other.mColumns)
+		throw new std::invalid_argument("Matrix a's rows and columns do not match matrix b's rows and columns.");
+
+	unsigned int size = GetSize();
 	for (int i = 0; i < size; i++) {
-		this->m_Elements[i] /= other->m_Elements[i];
+		this->mElements[i] /= other.mElements[i];
 	}
 }
 
-void Matrix::dot(const Matrix* other)
+void Matrix::Dot(const Matrix& other)
 {
-	if (other->getRows() == this->m_Columns) {
-		unsigned int newRows = this->m_Rows;
-		unsigned int newColumns = other->getColumns();
+	if (other.GetRows() == this->mColumns) {
+		unsigned int newRows = this->mRows;
+		unsigned int newColumns = other.GetColumns();
 		double* newElements = new double[newRows * newColumns];
 		for (unsigned int y = 0; y < newRows; y++) {
 			for (unsigned int x = 0; x < newColumns; x++) {
 				double sum = 0;
-				for (unsigned int e = 0; e < this->m_Columns; e++) {
-					sum += this->m_Elements[e + y * this->m_Columns] * other->m_Elements[x + e * other->getColumns()];
+				for (unsigned int e = 0; e < this->mColumns; e++) {
+					sum += this->mElements[e + y * this->mColumns] * other.mElements[x + e * other.GetColumns()];
 				}
 				newElements[x + y * newColumns] = sum;
 			}
 		}
 
-		this->m_Rows = newRows;
-		this->m_Columns = newColumns;
-		delete[] this->m_Elements;
-		this->m_Elements = newElements;
+		this->mRows = newRows;
+		this->mColumns = newColumns;
+		delete[] this->mElements;
+		this->mElements = newElements;
 	} else {
 		throw new std::invalid_argument("Matrix a's columns do not match matrix b's rows.");
 	}
 }
 
-Matrix* Matrix::add(const Matrix* a, const Matrix* b)
+Matrix Matrix::Add(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = new Matrix(*a);
-	result->add(b);
+	Matrix result(a);
+	result.Add(b);
 	return result;
 }
 
-Matrix* Matrix::subtract(const Matrix* a, const Matrix* b)
+Matrix Matrix::Subtract(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = new Matrix(*a);
-	result->subtract(b);
+	Matrix result(a);
+	result.Subtract(b);
 	return result;
 }
 
-Matrix* Matrix::multiply(const Matrix* a, const Matrix* b)
+Matrix Matrix::Multiply(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = new Matrix(*a);
-	result->multiply(b);
+	Matrix result(a);
+	result.Multiply(b);
 	return result;
 }
 
-Matrix* Matrix::divide(const Matrix* a, const Matrix* b)
+Matrix Matrix::Divide(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = new Matrix(*a);
-	result->divide(b);
+	Matrix result(a);
+	result.Divide(b);
 	return result;
 }
 
-Matrix* Matrix::dot(const Matrix* a, const Matrix* b)
+Matrix Matrix::Dot(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = new Matrix(*a);
-	result->dot(b);
+	Matrix result(a);
+	result.Dot(b);
 	return result;
 }
 
-void Matrix::transpose()
+void Matrix::Transpose()
 {
-	double* newElements = new double[this->m_Rows * this->m_Columns];
-	for (unsigned int x = 0; x < this->m_Columns; x++) {
-		for (unsigned int y = 0; y < this->m_Rows; y++) {
-			newElements[y + x * this->m_Rows] = this->m_Elements[x + y * this->m_Columns];
+	double* newElements = new double[this->mRows * this->mColumns];
+	for (unsigned int x = 0; x < this->mColumns; x++) {
+		for (unsigned int y = 0; y < this->mRows; y++) {
+			newElements[y + x * this->mRows] = this->mElements[x + y * this->mColumns];
 		}
 	}
 
-	unsigned int temp = this->m_Rows;
-	this->m_Rows = m_Columns;
-	this->m_Columns = temp;
-	delete[] this->m_Elements;
-	this->m_Elements = newElements;
+	unsigned int temp = this->mRows;
+	this->mRows = mColumns;
+	this->mColumns = temp;
+	delete[] this->mElements;
+	this->mElements = newElements;
 }
 
-Matrix* Matrix::transpose(const Matrix* matrix)
+Matrix Matrix::Transpose(const Matrix& matrix)
 {
-	Matrix* result = new Matrix(*matrix);
-	result->transpose();
+	Matrix result(matrix);
+	result.Transpose();
 	return result;
 }
 
 Matrix operator+(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = Matrix::add(&a, &b);
-	Matrix copy(*result);
-	delete result;
-	return copy;
+	return Matrix::Add(a, b);
 }
 
 Matrix operator-(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = Matrix::subtract(&a, &b);
-	Matrix copy(*result);
-	delete result;
-	return copy;
+	return Matrix::Subtract(a, b);
 }
 
 Matrix operator*(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = Matrix::multiply(&a, &b);
-	Matrix copy(*result);
-	delete result;
-	return copy;
+	return Matrix::Multiply(a, b);
 }
 
 Matrix operator/(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = Matrix::divide(&a, &b);
-	Matrix copy(*result);
-	delete result;
-	return copy;
+	return Matrix::Divide(a, b);
 }
 
 Matrix operator^(const Matrix& a, const Matrix& b)
 {
-	Matrix* result = Matrix::dot(&a, &b);
-	Matrix copy(*result);
-	delete result;
-	return copy;
+	return Matrix::Dot(a, b);
 }
 
 void Matrix::operator+=(const Matrix& other)
 {
-	this->add(&other);
+	this->Add(other);
 }
 
 void Matrix::operator-=(const Matrix& other)
 {
-	this->subtract(&other);
+	this->Subtract(other);
 }
 
 void Matrix::operator*=(const Matrix& other)
 {
-	this->multiply(&other);
+	this->Multiply(other);
 }
 
 void Matrix::operator/=(const Matrix& other)
 {
-	this->divide(&other);
+	this->Divide(other);
 }
 
 void Matrix::operator^=(const Matrix& other)
 {
-	this->dot(&other);
+	this->Dot(other);
 }
 }

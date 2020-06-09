@@ -1,26 +1,25 @@
 #include "src/maths/Matrix.h"
 #include <iostream>
+#include <stdlib.h>
+#include <time.h>
+#include <chrono>
+
 int main()
 {
-	maths::Matrix a(2, 2);
-	maths::Matrix b(2, 2);
-	
-	a.m_Elements[0] = 1;
-	a.m_Elements[1] = 2;
-	a.m_Elements[2] = 3;
-	a.m_Elements[3] = 4;
+	maths::Matrix a(1000, 1001);
+	maths::Matrix b(1000, 1000);
 
-	b.m_Elements[0] = 5;
-	b.m_Elements[1] = 6;
-	b.m_Elements[2] = 7;
-	b.m_Elements[3] = 8;
+	srand(time(NULL));
 
-	maths::Matrix c = *maths::Matrix::transpose(&a);
+	for (int i = 0; i < 1000 * 1000; i++) {
+		a.mElements[i] = ((double) rand() / (double) INT_MAX)*1000;
+		b.mElements[i] = ((double) rand() / (double) INT_MAX)*1000;
+	}
 
-	std::cout << c.m_Elements[0] << std::endl;
-	std::cout << c.m_Elements[1] << std::endl;
-	std::cout << c.m_Elements[2] << std::endl;
-	std::cout << c.m_Elements[3] << std::endl;
+	auto start = std::chrono::high_resolution_clock::now();
+	maths::Matrix c = a + b;
+	auto end = std::chrono::high_resolution_clock::now();
 
+	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 	return 0;
 }
