@@ -9,7 +9,7 @@ Matrix::Matrix(int rows, int columns):
 }
 
 Matrix::Matrix(const Matrix& copy):
-	mRows(copy.GetRows()), mColumns(copy.GetColumns())
+	mRows(copy.mRows), mColumns(copy.mColumns)
 {
 	unsigned int size = copy.GetSize();
 	this->mElements = new double[size];
@@ -21,8 +21,8 @@ Matrix::Matrix(const Matrix& copy):
 
 Matrix::Matrix(Matrix&& other) noexcept
 {
-	this->mRows = other.GetRows();
-	this->mColumns = other.GetColumns();
+	this->mRows = other.mRows;
+	this->mColumns = other.mColumns;
 	this->mElements = other.mElements;
 
 	other.mElements = nullptr;
@@ -81,15 +81,15 @@ void Matrix::Divide(const Matrix& other)
 
 void Matrix::Dot(const Matrix& other)
 {
-	if (other.GetRows() == this->mColumns) {
+	if (other.mRows == this->mColumns) {
 		unsigned int newRows = this->mRows;
-		unsigned int newColumns = other.GetColumns();
+		unsigned int newColumns = other.mColumns;
 		double* newElements = new double[newRows * newColumns];
 		for (unsigned int y = 0; y < newRows; y++) {
 			for (unsigned int x = 0; x < newColumns; x++) {
 				double sum = 0;
 				for (unsigned int e = 0; e < this->mColumns; e++) {
-					sum += this->mElements[e + y * this->mColumns] * other.mElements[x + e * other.GetColumns()];
+					sum += this->mElements[e + y * this->mColumns] * other.mElements[x + e * other.mColumns];
 				}
 				newElements[x + y * newColumns] = sum;
 			}

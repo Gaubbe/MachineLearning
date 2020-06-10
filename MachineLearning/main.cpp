@@ -6,7 +6,7 @@
 
 int main()
 {
-	maths::Matrix a(1000, 1001);
+	maths::Matrix a(1000, 1000);
 	maths::Matrix b(1000, 1000);
 
 	srand(time(NULL));
@@ -17,7 +17,7 @@ int main()
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	maths::Matrix c = a + b;
+	maths::Matrix c = a ^ b;
 	auto end = std::chrono::high_resolution_clock::now();
 
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
