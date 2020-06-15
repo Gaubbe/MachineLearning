@@ -46,5 +46,8 @@ public:
 	void operator*=(const Matrix& other);
 	void operator/=(const Matrix& other);
 	void operator^=(const Matrix& other);
+	
+private:
+	double* CalculateElementsForDotProduct(const Matrix& a, const Matrix& b, unsigned int x, unsigned int y, unsigned int numIterations);
 };
 }
