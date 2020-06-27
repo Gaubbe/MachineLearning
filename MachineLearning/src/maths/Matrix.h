@@ -1,12 +1,15 @@
 #pragma once
+#include <mutex>
 
 namespace maths {
+
 class Matrix {
 public:
 	double* mElements;
 private:
 	unsigned int mRows;
 	unsigned int mColumns;
+	static std::mutex sMutex;
 public:
 	Matrix(int rows, int columns);
 	Matrix(const Matrix& copy);
@@ -48,6 +51,7 @@ public:
 	void operator^=(const Matrix& other);
 	
 private:
-	double* CalculateElementsForDotProduct(const Matrix& a, const Matrix& b, unsigned int x, unsigned int y, unsigned int numIterations);
+	void CalcualteDotProduct(const Matrix& a, const Matrix& b, double* result);
+	void CalculateSectionOfDotProduct(const Matrix& a, const Matrix& b, unsigned int startRow, unsigned int endRow, double* result);
 };
 }

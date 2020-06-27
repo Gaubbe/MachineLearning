@@ -1,8 +1,16 @@
 #include "Matrix.h"
-#include <stdexcept>
 #include <immintrin.h>
+#include <math.h>
+#include <algorithm>
+
+#include <vector>
+#include <thread>
+
+#define MAX_THREADS 4
 
 namespace maths {
+std::mutex Matrix::sMutex;
+
 Matrix::Matrix(int rows, int columns):
 	mRows(rows), mColumns(columns)
 {
@@ -74,19 +82,8 @@ void Matrix::Dot(const Matrix& other)
 		unsigned int newRows = this->mRows;
 		unsigned int newColumns = other.GetColumns();
 		double* newElements = new double[newRows * newColumns];
-		for (unsigned int y = 0; y < newRows; y++) {
-			for (unsigned int x = 0; x < newColumns; x+=4) {
-				double* results = CalculateElementsForDotProduct(*this, other, x, y, this->mColumns);
-				for (unsigned int i = 0; i < 4; i++) {
-					unsigned int xIndex = x + i;
-					unsigned int index = xIndex + y * newRows;
-					if (xIndex >= newRows)
-						break;
-					newElements[index] = results[i];
-				}
-				delete[] results;
-			}
-		}
+		
+		CalcualteDotProduct(*this, other, newElements);
 
 		this->mRows = newRows;
 		this->mColumns = newColumns;
@@ -203,34 +200,27 @@ void Matrix::operator^=(const Matrix& other)
 	this->Dot(other);
 }
 
-double* Matrix::CalculateElementsForDotProduct(const Matrix& a, const Matrix& b, unsigned int x, unsigned int y, unsigned int numIterations)
+void Matrix::CalcualteDotProduct(const Matrix& a, const Matrix& b, double* result)
 {
-	double* result = new double[4];
-	__m256d _sum, _a, _b;
+	CalculateSectionOfDotProduct(a, b, 0, a.mRows, result);
+}
 
-	//for(int i = 0; i < numIterations; i++) {
-	//    a = | aElements[i + y * aColumns] | aElements[i + y * aColumns] | aElements[i + y * aColumns] | aElements[i + y * aColumns] |;
-	//    b = | bElements[x + 0 + i * bColumns] | bElements[x + 1 + i * bColumns] | bElements[x + 2 + i * bColumns] | bElements[x + 3 + i * bColumns] |;
-	//    sum += a * b;
-	//}
+void Matrix::CalculateSectionOfDotProduct(const Matrix& a, const Matrix& b, unsigned int startRow, unsigned int endRow, double* result)
+{
+	for (unsigned int i = startRow; i < endRow; i++) {
+		for (unsigned int j = 0; j < b.mColumns; j+=4) {
+			unsigned short elementsToWrite = (unsigned short)std::min(4, 4 - (((int)j + 4) - (int)b.mColumns));
 
-	_sum = _mm256_setzero_pd();
-	for (unsigned int i = 0; i < numIterations; i++) {
-		//a = | aElements[i + y * aColumns] | aElements[i + y * aColumns] | aElements[i + y * aColumns] | aElements[i + y * aColumns] |;
-		_a = _mm256_set1_pd(a.mElements[i + y * a.mColumns]);
-		//b = | bElements[x + 0 + i * bColumns] | bElements[x + 1 + i * bColumns] | bElements[x + 2 + i * bColumns] | bElements[x + 3 + i * bColumns] |;
-		_b = _mm256_set_pd((x + 0) < b.mColumns ? b.mElements[x + 0 + i * b.mColumns] : 0,
-						   (x + 1) < b.mColumns ? b.mElements[x + 1 + i * b.mColumns] : 0, 
-						   (x + 2) < b.mColumns ? b.mElements[x + 2 + i * b.mColumns] : 0, 
-						   (x + 3) < b.mColumns ? b.mElements[x + 3 + i * b.mColumns] : 0);
-		//sum += a * b;
-		_sum = _mm256_add_pd(_sum, _mm256_mul_pd(_a, _b));
+			__m256d _sum = _mm256_setzero_pd();
+			for (unsigned int k = 0; k < a.mColumns; k++) {
+				__m256d _a = _mm256_set1_pd(a.mElements[k + i * a.mColumns]);
+				__m256d _b = _mm256_load_pd(b.mElements + (j + k * b.mColumns));
+				_sum = _mm256_add_pd(_sum, _mm256_mul_pd(_a, _b));
+			}
+
+			for(unsigned short e = 0; e < elementsToWrite; e++)
+				result[j + e + i * b.mColumns] = _sum.m256d_f64[e];
+		}
 	}
-
-	result[0] = _sum.m256d_f64[3];
-	result[1] = _sum.m256d_f64[2];
-	result[2] = _sum.m256d_f64[1];
-	result[3] = _sum.m256d_f64[0];
-	return result;
 }
 }
