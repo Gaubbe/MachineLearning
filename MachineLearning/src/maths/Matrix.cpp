@@ -9,8 +9,6 @@
 #define MAX_THREADS 4
 
 namespace maths {
-std::mutex Matrix::sMutex;
-
 Matrix::Matrix(int rows, int columns):
 	mRows(rows), mColumns(columns)
 {
@@ -47,7 +45,7 @@ Matrix::~Matrix()
 void Matrix::Add(const Matrix& other)
 {
 	unsigned int size = GetSize();
-	for (int i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		this->mElements[i] += other.mElements[i];
 	}
 }
@@ -55,7 +53,7 @@ void Matrix::Add(const Matrix& other)
 void Matrix::Subtract(const Matrix& other)
 {
 	unsigned int size = GetSize();
-	for (int i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		this->mElements[i] -= other.mElements[i];
 	}
 }
@@ -63,7 +61,7 @@ void Matrix::Subtract(const Matrix& other)
 void Matrix::Multiply(const Matrix& other)
 {
 	unsigned int size = GetSize();
-	for (int i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		this->mElements[i] *= other.mElements[i];
 	}
 }
@@ -71,7 +69,7 @@ void Matrix::Multiply(const Matrix& other)
 void Matrix::Divide(const Matrix& other)
 {
 	unsigned int size = GetSize();
-	for (int i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		this->mElements[i] /= other.mElements[i];
 	}
 }
@@ -202,7 +200,19 @@ void Matrix::operator^=(const Matrix& other)
 
 void Matrix::CalcualteDotProduct(const Matrix& a, const Matrix& b, double* result)
 {
-	CalculateSectionOfDotProduct(a, b, 0, a.mRows, result);
+	std::vector<std::thread> threads;
+	
+	float rowsPerThread = (float)a.mRows / MAX_THREADS;
+
+	for (unsigned int i = 0; i < MAX_THREADS; i++) {
+		unsigned int startRow = round(rowsPerThread) * i;
+		unsigned int endRows = round(rowsPerThread) * (i + 1);
+
+		threads.push_back(std::thread(Matrix::CalculateSectionOfDotProduct, a, b, startRow, endRows, result));
+	}
+
+	for (unsigned int i = 0; i < MAX_THREADS; i++)
+		threads[i].join();
 }
 
 void Matrix::CalculateSectionOfDotProduct(const Matrix& a, const Matrix& b, unsigned int startRow, unsigned int endRow, double* result)

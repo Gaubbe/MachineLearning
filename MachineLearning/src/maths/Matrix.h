@@ -51,7 +51,7 @@ public:
 	void operator^=(const Matrix& other);
 	
 private:
-	void CalcualteDotProduct(const Matrix& a, const Matrix& b, double* result);
-	void CalculateSectionOfDotProduct(const Matrix& a, const Matrix& b, unsigned int startRow, unsigned int endRow, double* result);
+	static void CalcualteDotProduct(const Matrix& a, const Matrix& b, double* result);
+	static void CalculateSectionOfDotProduct(const Matrix& a, const Matrix& b, unsigned int startRow, unsigned int endRow, double* result);
 };
 }
